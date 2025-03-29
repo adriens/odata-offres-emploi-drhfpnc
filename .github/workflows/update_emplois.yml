@@ -21,6 +21,10 @@ jobs:
         run: |
           pip install --upgrade duckdb pandas
 
+      - name: Download data
+        run: |
+          wget -O offres_demploi.parquet "https://data.gouv.nc/api/explore/v2.1/catalog/datasets/offres-demploi/exports/parquet?lang=fr&timezone=Pacific%2FNoumea"
+
       - name: Execute script
         run: |
           python - <<EOF
