@@ -1,0 +1,63 @@
+name: Update emplois data
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  update_emplois:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade duckdb pandas
+
+      - name: Execute script
+        run: |
+          python - <<EOF
+          import duckdb
+
+          con = duckdb.connect(database='emploi-nc.duckdb', read_only=False)
+          con.sql("""create or replace temp table load_emploi as select * from 'offres_demploi.parquet'""")
+
+          con.sql("""create or replace table emplois as select
+              coderome,
+              apourvoirle as a_pourvoir_le,
+              titreoffre as titre_offre,
+              datepublication as date_publication,
+              case when (desquepossible = 1) then 'Dès que possible' else '' end as des_que_possible_desc,
+              diplome,
+              duree || ' ' || uniteduree as duree_contrat,
+              nbpostes as nb_postes,
+              numero,
+              created,
+              niveauformation as niveau_formation,
+              experience,
+              communeemploi as commune_emploi,
+              employeur_nomentreprise as employeur_nom_entreprise,
+              employeur_adressecorrespondance_subdivision as employeur_adresse_correspondance_subdivision,
+              activites_multivalue,
+              competences_multivalue,
+              contact_mail
+          from load_emploi
+          where statut = 'PUBLIEE'""")
+
+          con.sql("""COPY emplois TO 'data/emplois.csv' (FORMAT csv, DELIMITER ',', HEADER)""")
+          EOF
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'github-actions'
+          git config --global user.email 'github-actions@github.com'
+          git add data/emplois.csv
+          git commit -m 'Update emplois.csv' || echo "No changes to commit"
+          git push
