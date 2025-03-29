@@ -62,6 +62,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          git config --global user.name "adriens"
+          git config --global user.email "adrien.sales@gmail.com"
           git add data/emplois.csv
           git commit -m "Ajout ou mise à jour de data/emplois.csv"
           git push origin main
