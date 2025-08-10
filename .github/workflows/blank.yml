@@ -1,6 +1,7 @@
 name: Create Secret Santa Issue
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: '0 0 * * *'
 
@@ -12,4 +13,3 @@ jobs:
         uses: adriens/gh-action-issue-secret-santa@v0.2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          # Ajoute ici les autres inputs si besoin (issue-title, deadline, budget)
